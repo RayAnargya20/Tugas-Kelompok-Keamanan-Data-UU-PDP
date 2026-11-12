@@ -13,7 +13,18 @@ type RoleGuard struct {
 func (rg *RoleGuard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	user, err := lmodel.UserFromContext(r.Context())
-	// TODO
+
+	if err != nil {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	for _, role := range rg.allowedRoles {
+		if user.Role == role {
+			rg.next.ServeHTTP(w, r)
+			return
+		}
+	}
 
 	http.Error(w, "Forbidden", http.StatusForbidden)
 
